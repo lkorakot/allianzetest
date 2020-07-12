@@ -26,11 +26,6 @@ public class AuthTokenSecurityConfig extends WebSecurityConfigurerAdapter {
 	//get authenticate header from property file
     @Value("${http.auth.tokenName}")
     private String authHeaderName;
- 
-    //this super token use for hack the api for testing propose only
-    //TODO: remove this for production deploy
-    @Value("${http.auth.superToken}")
-    private String superToken;
     
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception 
@@ -50,7 +45,7 @@ public class AuthTokenSecurityConfig extends WebSecurityConfigurerAdapter {
                                 
                 //grant access to user 
                 //TODO: remove check for superToken when deploy to production 
-                if (user != null || principal == superToken)
+                if (user != null)
                 	authentication.setAuthenticated(true);
                 
                 return authentication;

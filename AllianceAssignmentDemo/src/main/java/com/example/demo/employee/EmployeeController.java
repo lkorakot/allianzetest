@@ -36,34 +36,48 @@ public class EmployeeController {
 		return employeeRepository;
 	}
     
+    //request authenticate token 
     @GetMapping("/request/token/{user}")
     public ResponseEntity<String> requestToken(@PathVariable(value = "user") String firstname, HttpSession session) {
+    	//check if {user} is in our database and return when found 
     	Employee foundUser = employeeRepository.findByFirstName(firstname);
-    	String message = "No User in System";
+
+    	//default message if we cannot find this user in database
+    	String message = "User Not found";
+    	
     	if(foundUser != null) {
+    		
+    		//generate random token and expired time for it
     		String token = UUID.randomUUID().toString();
     		LocalDateTime expired = LocalDateTime.now().plusMinutes(15);
+    		
     		User user = userRepository.findByUser(firstname);
     		
     		if(user == null) {
+    			//if we do not have this user in database yet crate one.
     			user = new User(foundUser.getFirstName(), token, expired);
     		} else {
+    			//if this user already in database update his/her token expired time when need. 
     			if(user.getExpired().isBefore(expired))
     				user.setExpired(expired);
     		}
+    		
     		userRepository.save(user);
     		
+    		//compose the return message including token key
     		message="AUTH_API_KEY = "+ token;
     	}
     		
     	return ResponseEntity.ok().body(message);
     }
     
+    //return all employees
     @GetMapping("/api/employees")
     public List<Employee> getAllEmployees() {
         return employeeRepository.findAll();
     }
 
+    //return selected employee
     @GetMapping("/api/employees/{id}")
     public ResponseEntity<Employee> getEmployeeById(@PathVariable(value = "id") Long employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
@@ -71,11 +85,13 @@ public class EmployeeController {
         return ResponseEntity.ok().body(employee);
     }
     
+    //add new employee
     @PostMapping("/api/employees")
     public Employee createEmployee(@RequestBody Employee employee) {
         return employeeRepository.save(employee);
     }
 
+    //update employee info
     @PutMapping("/api/employees/{id}")
     public ResponseEntity<Employee> updateEmployee(@PathVariable(value = "id") Long employeeId,
         @RequestBody Employee employeeDetails) {
@@ -89,6 +105,7 @@ public class EmployeeController {
         return ResponseEntity.ok(updatedEmployee);
     }
 
+    //delete employee
     @DeleteMapping("/api/employees/{id}")
     public Map<String, Boolean> deleteEmployee(@PathVariable(value = "id") Long employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
